@@ -1,0 +1,5 @@
+{
+  "name": "LectureSynth",
+  "description": "An enterprise-grade educational pipeline that transforms PDF lecture slides into atomic, reviewable knowledge graphs using Gemini 2.5 Multimodal AI.",
+  "requestFramePermissions": []
+}
