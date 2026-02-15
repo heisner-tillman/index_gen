@@ -9,6 +9,10 @@ vi.mock('../services', () => ({
   extractPDFInfo: vi.fn(),
   renderPageToImage: vi.fn(),
   analyzeSlide: vi.fn(),
+  fetchModels: vi.fn().mockResolvedValue({
+    models: [{ id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash' }],
+    default: 'gemini-2.5-flash',
+  }),
 }));
 
 vi.mock('../services/exportService', () => ({

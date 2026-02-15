@@ -6,13 +6,14 @@ import { Loader2, CheckCircle2, AlertCircle, FileText, SkipForward } from 'lucid
 interface ProcessingProps {
   file: File;
   limit: number | null;
+  model?: string;
   onComplete: (lecture: Lecture) => void;
   onError: (error: string) => void;
 }
 
 const CONCURRENT_REQUESTS = 3; // Limit concurrency to avoid browser/API overload
 
-export const Processing: React.FC<ProcessingProps> = ({ file, limit, onComplete, onError }) => {
+export const Processing: React.FC<ProcessingProps> = ({ file, limit, model, onComplete, onError }) => {
   const [status, setStatus] = useState<string>('Initializing PDF engine...');
   const [progress, setProgress] = useState(0);
   const [cards, setCards] = useState<Flashcard[]>([]);
@@ -66,7 +67,7 @@ export const Processing: React.FC<ProcessingProps> = ({ file, limit, onComplete,
 
              // 2. Call Gemini
              setCurrentProcessingPage(card.pageNumber);
-             const result = await analyzeSlide(base64, card.pageNumber);
+             const result = await analyzeSlide(base64, card.pageNumber, 0, model);
 
              // 3. Update result
              if (cardIndex !== -1) {

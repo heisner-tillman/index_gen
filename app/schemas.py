@@ -5,3 +5,4 @@ class AnalyzeRequest(BaseModel):
     base64_image: str
     page_number: int
     retry_count: Optional[int] = 0
+    model: Optional[str] = None

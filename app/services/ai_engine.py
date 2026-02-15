@@ -11,13 +11,42 @@ class AIEngine:
         if not self.api_key:
             raise ValueError("API_KEY environment variable is not set")
         self.client = Client(api_key=self.api_key)
-        self.model_name = "gemini-2.5-flash"
+        self.default_model = "gemini-2.5-flash"
 
-    async def analyze_slide(self, base64_image: str, page_number: int, retry_count: int = 0) -> dict:
+    def list_models(self) -> list[dict]:
+        """
+        Returns available Gemini models that support vision (image input).
+        """
+        try:
+            models = self.client.models.list()
+            result = []
+            for m in models:
+                model_id = m.name if hasattr(m, 'name') else str(m)
+                # Only include gemini models, skip embedding/aqa models
+                if 'gemini' not in model_id.lower():
+                    continue
+                display_name = m.display_name if hasattr(m, 'display_name') else model_id
+                result.append({
+                    "id": model_id.replace("models/", ""),
+                    "name": display_name,
+                })
+            return result
+        except Exception as e:
+            print(f"Error listing models: {e}")
+            # Fallback to known defaults
+            return [
+                {"id": "gemini-2.5-flash", "name": "Gemini 2.5 Flash"},
+                {"id": "gemini-2.5-pro", "name": "Gemini 2.5 Pro"},
+                {"id": "gemini-2.0-flash", "name": "Gemini 2.0 Flash"},
+                {"id": "gemini-3-pro-preview", "name": "Gemini 3 Pro (Preview)"},
+            ]
+
+    async def analyze_slide(self, base64_image: str, page_number: int, retry_count: int = 0, model: str = None) -> dict:
         """
         Analyzes a slide image and returns structured flashcard data.
         Implements exponential backoff.
         """
+        active_model = model or self.default_model
         
         flashcard_schema = {
             "type": "OBJECT",
@@ -48,7 +77,7 @@ class AIEngine:
                     image_data = image_data.split(",", 1)[1]
                 
                 return self.client.models.generate_content(
-                    model=self.model_name,
+                    model=active_model,
                     contents=[
                         types.Part.from_bytes(
                             data=base64.b64decode(image_data),
@@ -90,7 +119,7 @@ class AIEngine:
                 delay = (2 ** retry_count) + (0.1 * retry_count) # Simple backoff
                 print(f"Rate limit hit for page {page_number}. Retrying in {delay}s...")
                 await asyncio.sleep(delay)
-                return await self.analyze_slide(base64_image, page_number, retry_count + 1)
+                return await self.analyze_slide(base64_image, page_number, retry_count + 1, model)
             
             print(f"Error analyzing slide {page_number}: {e}")
             raise e

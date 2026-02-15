@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { extractPDFInfo } from '../services';
-import { Loader2, ArrowRight, Play, AlertCircle } from 'lucide-react';
+import { extractPDFInfo, fetchModels } from '../services';
+import { GeminiModel } from '../services/geminiService';
+import { Loader2, ArrowRight, Play, AlertCircle, Cpu } from 'lucide-react';
 
 interface ConsentProps {
   file: File;
-  onConfirm: (limit: number | null) => void;
+  onConfirm: (limit: number | null, model: string) => void;
   onCancel: () => void;
 }
 
@@ -14,6 +15,17 @@ export const Consent: React.FC<ConsentProps> = ({ file, onConfirm, onCancel }) =
   const [error, setError] = useState<string | null>(null);
   const [limit, setLimit] = useState<number | ''>('');
   const [useLimit, setUseLimit] = useState(false);
+
+  // Model selection state — initialize with defaults so dropdown is never empty
+  const DEFAULT_MODELS: GeminiModel[] = [
+    { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash' },
+    { id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro' },
+    { id: 'gemini-2.0-flash', name: 'Gemini 2.0 Flash' },
+    { id: 'gemini-3-pro-preview', name: 'Gemini 3 Pro (Preview)' },
+  ];
+  const [models, setModels] = useState<GeminiModel[]>(DEFAULT_MODELS);
+  const [selectedModel, setSelectedModel] = useState<string>('gemini-2.5-flash');
+  const [modelsLoading, setModelsLoading] = useState(false);
 
   useEffect(() => {
     const loadInfo = async () => {
@@ -29,11 +41,30 @@ export const Consent: React.FC<ConsentProps> = ({ file, onConfirm, onCancel }) =
     loadInfo();
   }, [file]);
 
+  useEffect(() => {
+    const loadModels = async () => {
+      setModelsLoading(true);
+      try {
+        const data = await fetchModels();
+        if (data.models && data.models.length > 0) {
+          setModels(data.models);
+          setSelectedModel(data.default || data.models[0].id);
+        }
+      } catch (err) {
+        console.error('Failed to load models, using defaults:', err);
+        // Defaults are already set in state
+      } finally {
+        setModelsLoading(false);
+      }
+    };
+    loadModels();
+  }, []);
+
   const handleStart = () => {
     if (useLimit && typeof limit === 'number' && limit > 0) {
-        onConfirm(limit);
+        onConfirm(limit, selectedModel);
     } else {
-        onConfirm(null); // Process all (null means no limit)
+        onConfirm(null, selectedModel);
     }
   };
 
@@ -75,6 +106,32 @@ export const Consent: React.FC<ConsentProps> = ({ file, onConfirm, onCancel }) =
             <span className="text-2xl font-bold text-indigo-600">{pageCount}</span>
         </div>
         <p className="text-xs text-indigo-600/80">Each slide requires 1 API call.</p>
+      </div>
+
+      {/* Model Selector */}
+      <div className="mb-6">
+        <label className="flex items-center gap-2 text-sm font-medium text-slate-700 mb-2">
+          <Cpu className="w-4 h-4 text-indigo-500" />
+          AI Model
+        </label>
+        {modelsLoading ? (
+          <div className="flex items-center gap-2 text-sm text-slate-400 py-2">
+            <Loader2 className="w-4 h-4 animate-spin" /> Loading models...
+          </div>
+        ) : (
+          <select
+            value={selectedModel}
+            onChange={(e) => setSelectedModel(e.target.value)}
+            className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+          >
+            {models.map(m => (
+              <option key={m.id} value={m.id}>{m.name}</option>
+            ))}
+          </select>
+        )}
+        <p className="text-xs text-slate-400 mt-1">
+          Flash models are faster & cheaper. Pro models produce higher quality.
+        </p>
       </div>
 
       <div className="space-y-4 mb-8">

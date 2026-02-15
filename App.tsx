@@ -15,6 +15,7 @@ const App: React.FC = () => {
   const [dashboardTab, setDashboardTab] = useState<DashboardTab>('new');
   const [file, setFile] = useState<File | null>(null);
   const [processingLimit, setProcessingLimit] = useState<number | null>(null);
+  const [selectedModel, setSelectedModel] = useState<string>('gemini-2.5-flash');
   const [lecture, setLecture] = useState<Lecture | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -37,8 +38,9 @@ const App: React.FC = () => {
     setError(null);
   };
 
-  const handleConsent = (limit: number | null) => {
+  const handleConsent = (limit: number | null, model: string) => {
       setProcessingLimit(limit);
+      setSelectedModel(model);
       setView(AppView.PROCESSING);
   };
 
@@ -58,6 +60,7 @@ const App: React.FC = () => {
     setFile(null);
     setLecture(null);
     setProcessingLimit(null);
+    setSelectedModel('gemini-2.5-flash');
     setView(AppView.DASHBOARD);
   };
 
@@ -170,6 +173,7 @@ const App: React.FC = () => {
                     <Processing 
                         file={file}
                         limit={processingLimit}
+                        model={selectedModel}
                         onComplete={handleProcessingComplete} 
                         onError={handleProcessingError} 
                     />

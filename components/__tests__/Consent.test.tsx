@@ -3,12 +3,13 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import React from 'react';
 import { Consent } from '../Consent';
 
-// Mock the extractPDFInfo service
+// Mock the services
 vi.mock('../../services', () => ({
   extractPDFInfo: vi.fn(),
+  fetchModels: vi.fn(),
 }));
 
-import { extractPDFInfo } from '../../services';
+import { extractPDFInfo, fetchModels } from '../../services';
 
 const mockFile = new File(['pdf'], 'lecture.pdf', { type: 'application/pdf' });
 
@@ -20,6 +21,14 @@ describe('Consent Component', () => {
     vi.clearAllMocks();
     mockOnConfirm = vi.fn();
     mockOnCancel = vi.fn();
+    // Default mock for fetchModels
+    (fetchModels as any).mockResolvedValue({
+      models: [
+        { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash' },
+        { id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro' },
+      ],
+      default: 'gemini-2.5-flash',
+    });
   });
 
   it('shows loading state initially', () => {
@@ -70,7 +79,7 @@ describe('Consent Component', () => {
 
     // "Process All Pages" is selected by default
     fireEvent.click(screen.getByText(/Start Processing/));
-    expect(mockOnConfirm).toHaveBeenCalledWith(null);
+    expect(mockOnConfirm).toHaveBeenCalledWith(null, 'gemini-2.5-flash');
   });
 
   it('calls onConfirm with a limit when "Limit Pages" is selected', async () => {
@@ -93,7 +102,7 @@ describe('Consent Component', () => {
     fireEvent.change(numberInput, { target: { value: '10' } });
 
     fireEvent.click(screen.getByText(/Start Processing/));
-    expect(mockOnConfirm).toHaveBeenCalledWith(10);
+    expect(mockOnConfirm).toHaveBeenCalledWith(10, 'gemini-2.5-flash');
   });
 
   it('calls onCancel when Cancel button is clicked', async () => {
@@ -133,5 +142,22 @@ describe('Consent Component', () => {
       expect(screen.getByText('Each slide requires 1 API call.')).toBeInTheDocument();
       expect(screen.getByText(/~15 calls/)).toBeInTheDocument();
     });
+  });
+  it('renders model selector with available models', async () => {
+    (extractPDFInfo as any).mockResolvedValue({ pageCount: 5 });
+    render(<Consent file={mockFile} onConfirm={mockOnConfirm} onCancel={mockOnCancel} />);
+
+    await waitFor(() => {
+      expect(screen.getByText('AI Model')).toBeInTheDocument();
+    });
+
+    const select = screen.getByRole('combobox') as HTMLSelectElement;
+    expect(select).toBeInTheDocument();
+    expect(select.value).toBe('gemini-2.5-flash');
+
+    // Change model and confirm
+    fireEvent.change(select, { target: { value: 'gemini-2.5-pro' } });
+    fireEvent.click(screen.getByText(/Start Processing/));
+    expect(mockOnConfirm).toHaveBeenCalledWith(null, 'gemini-2.5-pro');
   });
 });

@@ -58,9 +58,21 @@ async def analyze_slide(request: AnalyzeRequest):
         result = await synth_system.ai_engine.analyze_slide(
             request.base64_image, 
             request.page_number,
-            request.retry_count
+            request.retry_count,
+            request.model
         )
         return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/models")
+async def list_models():
+    """
+    List available Gemini models.
+    """
+    try:
+        models = synth_system.ai_engine.list_models()
+        return {"models": models, "default": synth_system.ai_engine.default_model}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
