@@ -140,4 +140,32 @@ describe('Processing Component', () => {
       expect(mockOnComplete).toHaveBeenCalled();
     }, { timeout: 5000 });
   });
+
+  it('marks cards as skipped when AI returns skip: true', async () => {
+    const mockDoc = { numPages: 3 };
+
+    (extractPDFInfo as any).mockResolvedValue({ pageCount: 3, pdfDoc: mockDoc });
+    (renderPageToImage as any).mockResolvedValue('data:image/jpeg;base64,mock');
+
+    // First slide is a title (skip), next two are content
+    (analyzeSlide as any)
+      .mockResolvedValueOnce({ front: 'Course Title', back: 'Title slide', skip: true })
+      .mockResolvedValueOnce({ front: 'Concept A', back: 'Explanation A', skip: false })
+      .mockResolvedValueOnce({ front: 'Concept B', back: 'Explanation B', skip: false });
+
+    render(
+      <Processing file={createMockFile()} limit={null} onComplete={mockOnComplete} onError={mockOnError} />
+    );
+
+    await waitFor(() => {
+      expect(mockOnComplete).toHaveBeenCalled();
+    }, { timeout: 5000 });
+
+    const lecture = mockOnComplete.mock.calls[0][0];
+    expect(lecture.cards[0].status).toBe('skipped');
+    expect(lecture.cards[1].status).toBe('completed');
+    expect(lecture.cards[2].status).toBe('completed');
+    // processedSlides should only count completed, not skipped
+    expect(lecture.processedSlides).toBe(2);
+  });
 });

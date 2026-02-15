@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Lecture, Flashcard } from '../types';
 import { generateObsidianVault, saveVaultToDirectory, generatePowerPoint } from '../services/exportService';
-import { Download, FileJson, ArrowLeft, Layers, PenLine, ExternalLink, Save, CheckCircle, Loader2, FolderOpen, Presentation } from 'lucide-react';
+import { SlideViewer } from './SlideViewer';
+import { Download, FileJson, ArrowLeft, Layers, PenLine, ExternalLink, Save, CheckCircle, Loader2, FolderOpen, Presentation, LayoutGrid, MonitorPlay, SkipForward } from 'lucide-react';
 
 interface ResultsProps {
   lecture: Lecture;
@@ -14,6 +15,7 @@ export const Results: React.FC<ResultsProps> = ({ lecture, onReset }) => {
   const [saving, setSaving] = useState(false);
   const [isSaved, setIsSaved] = useState(lecture.is_saved);
   const [savedPath, setSavedPath] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<'slides' | 'cards'>('slides');
 
   const handleSave = async () => {
       setSaving(true);
@@ -96,6 +98,11 @@ export const Results: React.FC<ResultsProps> = ({ lecture, onReset }) => {
           <h1 className="text-2xl font-bold text-slate-900">{lecture.filename}</h1>
           <p className="text-slate-500 text-sm mt-1">
             Generated {cards.filter(c => c.status === 'completed').length} concepts from {lecture.totalSlides} slides.
+            {cards.filter(c => c.status === 'skipped').length > 0 && (
+              <span className="ml-1 text-amber-600">
+                ({cards.filter(c => c.status === 'skipped').length} skipped)
+              </span>
+            )}
             {savedPath && <span className="ml-2 text-emerald-600">• Saved to {savedPath}</span>}
           </p>
         </div>
@@ -134,10 +141,42 @@ export const Results: React.FC<ResultsProps> = ({ lecture, onReset }) => {
         </div>
       </div>
 
-      {/* Grid */}
+      {/* View Toggle */}
+      <div className="flex items-center gap-2">
+        <button
+          onClick={() => setViewMode('slides')}
+          className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all ${
+            viewMode === 'slides'
+              ? 'bg-indigo-600 text-white shadow-sm'
+              : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
+          }`}
+        >
+          <MonitorPlay className="w-4 h-4" />
+          Slide View
+        </button>
+        <button
+          onClick={() => setViewMode('cards')}
+          className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all ${
+            viewMode === 'cards'
+              ? 'bg-indigo-600 text-white shadow-sm'
+              : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
+          }`}
+        >
+          <LayoutGrid className="w-4 h-4" />
+          Card View
+        </button>
+      </div>
+
+      {/* Slide Viewer */}
+      {viewMode === 'slides' && (
+        <SlideViewer cards={cards} lectureName={lecture.filename.replace('.pdf', '')} />
+      )}
+
+      {/* Card Grid */}
+      {viewMode === 'cards' && (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {cards.map((card) => (
-          <div key={card.id} className="group relative bg-white border border-slate-200 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden flex flex-col">
+          <div key={card.id} className={`group relative bg-white border border-slate-200 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden flex flex-col ${card.status === 'skipped' ? 'opacity-50' : ''}`}>
             {/* Slide Image */}
             {card.originalImage && (
                 <div className="bg-slate-100 border-b border-slate-200">
@@ -153,6 +192,7 @@ export const Results: React.FC<ResultsProps> = ({ lecture, onReset }) => {
             <div className="bg-slate-50 px-4 py-2 border-b border-slate-100 flex justify-between items-center text-xs text-slate-500 font-mono">
                 <span>Page {card.pageNumber}</span>
                 {card.status === 'failed' && <span className="text-red-500">Failed</span>}
+                {card.status === 'skipped' && <span className="text-amber-500 flex items-center gap-1"><SkipForward className="w-3 h-3" />Skipped</span>}
             </div>
             
             {/* Card Content */}
@@ -183,6 +223,7 @@ export const Results: React.FC<ResultsProps> = ({ lecture, onReset }) => {
           </div>
         ))}
       </div>
+      )}
       
       {/* Footer Info */}
       <div className="bg-violet-50 border border-violet-100 rounded-lg p-4 flex items-start gap-3">

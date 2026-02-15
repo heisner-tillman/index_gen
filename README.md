@@ -1,107 +1,231 @@
-# LectureSynth 🎓
+<p align="center">
+  <img src="https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=white" alt="React 19" />
+  <img src="https://img.shields.io/badge/Vite-6-646CFF?style=for-the-badge&logo=vite&logoColor=white" alt="Vite 6" />
+  <img src="https://img.shields.io/badge/FastAPI-0.109-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI" />
+  <img src="https://img.shields.io/badge/Gemini_2.5_Flash-AI-8E75B2?style=for-the-badge&logo=google&logoColor=white" alt="Gemini 2.5 Flash" />
+  <img src="https://img.shields.io/badge/TypeScript-5.8-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
+  <img src="https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker" />
+  <img src="https://img.shields.io/badge/Tests-101_Passing-22C55E?style=for-the-badge&logo=vitest&logoColor=white" alt="Tests" />
+</p>
 
-> Turn complex PDF lectures into atomic knowledge graphs with AI.
+<h1 align="center">⚡ LectureSynth</h1>
 
-**LectureSynth** is a powerful tool designed for students and researchers. It ingests PDF lecture slides, uses Google GeminiAI to analyze both visual and textual content, and synthesizes "knowledge cards"—concise concept/explanation pairs.
+<p align="center">
+  <strong>Transform PDF lectures into structured knowledge — instantly.</strong><br/>
+  AI-powered slide analysis that turns your lecture PDFs into flashcards, Obsidian vaults, and presentations.
+</p>
 
-**Version**: 1.2.0
-**Model**: Gemini 2.5 Flash
+---
 
-## ✨ Key Features
+## ✨ Features
 
--   **Deep Slide Analysis**: Uses multimodal AI to understand diagrams, charts, and text layout.
--   **Smart Synthesis**: Extracts one core concept per slide, filtering out noise.
--   **API Call Consent**: Check page counts and set processing limits *before* incurring API costs.
--   **Project Persistence**: Includes auto-save to temporary storage and manual "Save Project" for long-term retention.
--   **Exit Protection**: Warns you if you attempt to close the app with unsaved changes.
--   **Dual Export**:
-    -   **Obsidian Vault**: A pre-linked Markdown knowledge base ready for your second brain.
-    -   **Google Slides**: Generate a clean, synthesized presentation deck automatically.
+| Feature | Description |
+|---|---|
+| 🤖 **AI Slide Analysis** | Gemini 2.5 Flash analyzes each slide image, extracting concepts and generating concise explanations |
+| 🎯 **Smart Slide Filtering** | Automatically detects and skips title pages, section dividers, and empty slides |
+| 🖥️ **In-App Slide Viewer** | Interactive presentation viewer with navigation, thumbnails, and fullscreen mode |
+| 📦 **Obsidian Vault Export** | Download a complete vault with interlinked markdown notes, ready to drop into Obsidian |
+| 📊 **PowerPoint Export** | Generate `.pptx` files with slide images and concepts — compatible with PowerPoint, Google Slides, and Keynote |
+| 💾 **Project Persistence** | Save and reload processed lectures from the dashboard |
+| 📁 **Directory Save** | Write vault files directly to a folder on your machine via the File System Access API |
+| ⚡ **Concurrent Processing** | Processes 3 slides simultaneously with automatic rate-limit backoff |
 
-## 🚀 Quick Start (Docker)
-
-The fastest way to run LectureSynth is with Docker.
-
-### Prerequisites
-
-1.  **Docker Engine** installed and running.
-2.  **Google Gemini API Key** (Get one [here](https://aistudio.google.com/app/apikey)).
-
-### Installation
-
-1.  **Clone the repository**:
-    ```bash
-    git clone https://github.com/yourusername/lecturesynth.git
-    cd lecturesynth/module
-    ```
-
-2.  **Configure API Key**:
-    Copy the example environment file and add your key.
-    ```bash
-    cp .env.example .env
-    ```
-    Open `.env` and paste your key:
-    ```env
-    GEMINI_API_KEY=AIzaSy...YourKeyHere...
-    ```
-
-3.  **Run with Docker**:
-    make the script executable (only needed once):
-    ```bash
-    chmod +x run_docker.sh
-    ```
-    Run the application:
-    ```bash
-    ./run_docker.sh
-    ```
-
-    The application will be available at: **[http://localhost:3000](http://localhost:3000)**
-
-## 📖 User Guide
-
-### 1. Upload & Consent
--   Drag and drop your PDF lecture file onto the dashboard.
--   **Review the Consent Screen**: You will see the total slide count.
--   **Choose**:
-    -   *Process All*: Analyze the entire deck.
-    -   *Limit Pages*: Set a maximum number (e.g., 5) to save API quota or test quickly.
-
-### 2. Processing
--   Watch as the AI analyzes each slide in real-time.
--   The backend securely handles all API communication.
-
-### 3. Review & Save
--   **Review**: Browse the generated flashcards.
--   **Save Project**: Click the "Save Project" button to permanently store your results on the server.
-    -   *Note*: Unsaved projects exist only in temporary storage and may be cleared.
--   **Export**:
-    -   Download JSON (Raw data).
-    -   Download Obsidian Vault (Zipped Markdown).
-
-### 4. Create Google Slides
-To turn your synthesized cards back into a clean presentation:
-1.  Download the **Obsidian Vault**.
-2.  Unzip it and find `create_slides_script.txt`.
-3.  Copy the code.
-4.  Go to [script.google.com](https://script.google.com).
-5.  New Project -> Paste code -> Run `createPresentation`.
-
-## 🛠️ Configuration
-
-### Environment Variables (.env)
-| Variable | Description | Required |
-| :--- | :--- | :--- |
-| `GEMINI_API_KEY` | Your Google AI Studio API Key. Used by the backend service. | **Yes** |
-
-### Security Note
--   The `.env` file is git-ignored to prevent accidental leaks.
--   The frontend **never** sees your API key; it calls a secure proxy on the backend.
+---
 
 ## 🏗️ Architecture
 
--   **Frontend**: React, Vite, TailwindCSS
--   **Backend**: FastAPI, Python, Google GenAI SDK
--   **Storage**: File-based local storage (Temp/Saved)
+```
+┌─────────────────────────────────────────────────────────────┐
+│                        Browser (React 19)                   │
+│                                                             │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌────────────┐  │
+│  │  Upload   │→│ Consent  │→│Processing│→│  Results    │  │
+│  │          │  │ (limits) │  │(parallel)│  │(viewer/    │  │
+│  │  PDF     │  │          │  │          │  │ exports)   │  │
+│  └──────────┘  └──────────┘  └────┬─────┘  └────────────┘  │
+│                                   │                         │
+│         PDF.js (client-side)      │  PptxGenJS / JSZip      │
+│         renders pages ────────────┤  generates exports      │
+│                                   │                         │
+└───────────────────────────────────┼─────────────────────────┘
+                                    │ POST /analyze
+                                    ▼
+┌─────────────────────────────────────────────────────────────┐
+│                     FastAPI Backend (:8000)                  │
+│                                                             │
+│  ┌──────────────────┐     ┌─────────────────────────────┐  │
+│  │   AI Engine       │     │   Storage Engine             │  │
+│  │                   │     │                              │  │
+│  │  Gemini 2.5 Flash │     │  temp_storage/               │  │
+│  │  JSON schema mode │     │  saved_storage/              │  │
+│  │  skip detection   │     │                              │  │
+│  └──────────────────┘     └─────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────┘
+```
 
 ---
-*Built with ❤️ for lifelong learners.*
+
+## 🚀 Quick Start
+
+### Prerequisites
+
+- **Node.js** ≥ 18
+- **Python** ≥ 3.10
+- **Google Gemini API Key** → [Get one here](https://aistudio.google.com/app/apikey)
+
+### 1. Clone & Install
+
+```bash
+git clone <your-repo-url>
+cd module
+
+# Frontend
+npm install
+
+# Backend
+pip install -r requirements.txt
+```
+
+### 2. Configure Environment
+
+```bash
+cp .env.example .env
+# Edit .env and add your Gemini API key:
+# GEMINI_API_KEY=your_actual_api_key_here
+```
+
+### 3. Run
+
+```bash
+# Terminal 1 — Backend
+uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+# Terminal 2 — Frontend
+npm run dev
+```
+
+Open **http://localhost:5173** and upload a PDF.
+
+---
+
+## 🐳 Docker Deployment
+
+A one-command deployment script handles everything:
+
+```bash
+chmod +x run_docker.sh
+./run_docker.sh
+```
+
+This builds and starts both containers on a shared network:
+
+| Service | Port | URL |
+|---|---|---|
+| Frontend (Nginx) | `3000` | http://localhost:3000 |
+| Backend (Uvicorn) | `8000` | http://localhost:8000 |
+
+> [!NOTE]
+> Ensure your `.env` file exists with `GEMINI_API_KEY` set before running.
+
+---
+
+## 📂 Project Structure
+
+```
+module/
+├── app/                        # FastAPI backend
+│   ├── main.py                 # API routes (upload, analyze, store, delete)
+│   ├── core.py                 # LectureSynth orchestrator
+│   ├── models.py               # Pydantic models (Lecture, Flashcard)
+│   ├── schemas.py              # Request schemas
+│   ├── services/
+│   │   ├── ai_engine.py        # Gemini integration & slide classification
+│   │   └── pdf_engine.py       # PDF processing engine
+│   └── tests/                  # Backend tests
+│
+├── components/                 # React components
+│   ├── Upload.tsx              # Drag & drop PDF upload
+│   ├── Consent.tsx             # Page count review & limit config
+│   ├── Processing.tsx          # Real-time processing progress
+│   ├── Results.tsx             # Results dashboard with view toggle
+│   ├── SlideViewer.tsx         # In-app presentation viewer
+│   ├── SavedProjects.tsx       # Project library
+│   └── __tests__/              # Component tests (60+ tests)
+│
+├── services/                   # Frontend services
+│   ├── geminiService.ts        # Backend API proxy
+│   ├── pdfService.ts           # Client-side PDF rendering (PDF.js)
+│   └── exportService.ts        # Obsidian vault & PPTX generation
+│
+├── App.tsx                     # Main application shell
+├── types.ts                    # TypeScript types
+├── Dockerfile                  # Frontend (multi-stage → Nginx)
+├── Dockerfile.backend          # Backend (Python slim)
+└── run_docker.sh               # One-command deployment
+```
+
+---
+
+## 🧪 Testing
+
+**101 tests** across **10 test files**, powered by [Vitest](https://vitest.dev) + React Testing Library.
+
+```bash
+# Run all tests
+npx vitest run
+
+# Watch mode
+npx vitest
+
+# Verbose output
+npx vitest run --reporter=verbose
+```
+
+| Suite | Tests | Covers |
+|---|---|---|
+| `Upload.test.tsx` | 8 | File input, drag-drop, PDF validation |
+| `Consent.test.tsx` | 8 | Loading, error states, page limits |
+| `Processing.test.tsx` | 7 | Progress, completion, failures, skip detection |
+| `Results.test.tsx` | 22 | Cards, exports, save, skip badges, view toggle |
+| `SlideViewer.test.tsx` | 13 | Navigation, thumbnails, fullscreen, filtering |
+| `SavedProjects.test.tsx` | 8 | List, select, delete, error handling |
+| `App.test.tsx` | 9 | Dashboard, tabs, navigation flows |
+| `geminiService.test.ts` | 6 | Fetch API, errors, retry logic |
+| `exportService.test.ts` | 14 | ZIP vault, markdown, PptxGenJS |
+| `pdfService.test.ts` | 2 | PDF loading, page rendering |
+
+---
+
+## 🔌 API Reference
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `POST` | `/analyze` | Analyze a slide image via Gemini AI |
+| `POST` | `/upload` | Upload a PDF for background processing |
+| `GET` | `/lectures` | List all saved lectures |
+| `GET` | `/lectures/:id` | Get lecture status and data |
+| `POST` | `/lectures/store` | Store a client-processed lecture |
+| `POST` | `/lectures/:id/save` | Move lecture to permanent storage |
+| `DELETE` | `/lectures/:id` | Delete a stored lecture |
+| `GET` | `/lectures/:id/download` | Download Obsidian vault as ZIP |
+
+---
+
+## 🛠️ Tech Stack
+
+| Layer | Technology |
+|---|---|
+| **Frontend** | React 19, TypeScript 5.8, Vite 6, Tailwind CSS |
+| **Backend** | FastAPI, Python 3.10, Uvicorn |
+| **AI** | Google Gemini 2.5 Flash (structured JSON output) |
+| **PDF** | PDF.js (client), pdf2image (server) |
+| **Exports** | PptxGenJS, JSZip |
+| **Testing** | Vitest, React Testing Library, pytest |
+| **Deployment** | Docker (Nginx + Uvicorn), multi-stage builds |
+| **Typography** | Inter (Google Fonts) |
+
+---
+
+## 📄 License
+
+This project is private. All rights reserved.

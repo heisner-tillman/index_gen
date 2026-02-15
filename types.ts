@@ -4,7 +4,7 @@ export interface Flashcard {
   back: string;
   pageNumber: number;
   page_number?: number;
-  status: 'pending' | 'processing' | 'completed' | 'failed';
+  status: 'pending' | 'processing' | 'completed' | 'failed' | 'skipped';
   error?: string;
   originalImage?: string; // Base64 of the slide for UI reference
 }

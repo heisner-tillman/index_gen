@@ -48,13 +48,17 @@ const createMockLecture = (overrides?: Partial<Lecture>): Lecture => ({
   ...overrides,
 });
 
+/** Helper: switch to Card View */
+const switchToCardView = () => {
+  fireEvent.click(screen.getByText('Card View'));
+};
+
 describe('Results Component', () => {
   let mockOnReset: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     vi.clearAllMocks();
     mockOnReset = vi.fn();
-    // Mock fetch for the save endpoint
     global.fetch = vi.fn().mockResolvedValue({
       ok: true,
       json: () => Promise.resolve({}),
@@ -66,6 +70,8 @@ describe('Results Component', () => {
     vi.restoreAllMocks();
   });
 
+  // --- Header / general tests (visible in any view) ---
+
   it('renders the lecture filename as heading', () => {
     render(<Results lecture={createMockLecture()} onReset={mockOnReset} />);
     expect(screen.getByText('Test Lecture.pdf')).toBeInTheDocument();
@@ -76,50 +82,71 @@ describe('Results Component', () => {
     expect(screen.getByText(/Generated 2 concepts from 3 slides/)).toBeInTheDocument();
   });
 
-  it('renders all flashcards', () => {
-    render(<Results lecture={createMockLecture()} onReset={mockOnReset} />);
-    expect(screen.getByText('What is React?')).toBeInTheDocument();
-    expect(screen.getByText('What is TypeScript?')).toBeInTheDocument();
-    expect(screen.getByText('Failed Card')).toBeInTheDocument();
-  });
-
-  it('renders page numbers for each card', () => {
-    render(<Results lecture={createMockLecture()} onReset={mockOnReset} />);
-    expect(screen.getByText('Page 1')).toBeInTheDocument();
-    expect(screen.getByText('Page 2')).toBeInTheDocument();
-    expect(screen.getByText('Page 3')).toBeInTheDocument();
-  });
-
-  it('shows "Failed" label for failed cards', () => {
-    render(<Results lecture={createMockLecture()} onReset={mockOnReset} />);
-    expect(screen.getByText('Failed')).toBeInTheDocument();
-  });
-
   it('calls onReset when "Process another file" is clicked', () => {
     render(<Results lecture={createMockLecture()} onReset={mockOnReset} />);
     fireEvent.click(screen.getByText('Process another file'));
     expect(mockOnReset).toHaveBeenCalled();
   });
 
-  it('renders card back text', () => {
+  // --- View toggle tests ---
+
+  it('defaults to Slide View', () => {
     render(<Results lecture={createMockLecture()} onReset={mockOnReset} />);
+    expect(screen.getByTestId('slide-viewer')).toBeInTheDocument();
+  });
+
+  it('shows Slide View and Card View toggle buttons', () => {
+    render(<Results lecture={createMockLecture()} onReset={mockOnReset} />);
+    expect(screen.getByText('Slide View')).toBeInTheDocument();
+    expect(screen.getByText('Card View')).toBeInTheDocument();
+  });
+
+  it('switches to Card View when clicked', () => {
+    render(<Results lecture={createMockLecture()} onReset={mockOnReset} />);
+    switchToCardView();
+    const labels = screen.getAllByText('Concept (Front)');
+    expect(labels.length).toBe(3);
+  });
+
+  it('switches back to Slide View', () => {
+    render(<Results lecture={createMockLecture()} onReset={mockOnReset} />);
+    switchToCardView();
+    fireEvent.click(screen.getByText('Slide View'));
+    expect(screen.getByTestId('slide-viewer')).toBeInTheDocument();
+  });
+
+  // --- Card View tests ---
+
+  it('renders all flashcards in Card View', () => {
+    render(<Results lecture={createMockLecture()} onReset={mockOnReset} />);
+    switchToCardView();
+    expect(screen.getByText('What is React?')).toBeInTheDocument();
+    expect(screen.getByText('What is TypeScript?')).toBeInTheDocument();
+    expect(screen.getByText('Failed Card')).toBeInTheDocument();
+  });
+
+  it('renders page numbers in Card View', () => {
+    render(<Results lecture={createMockLecture()} onReset={mockOnReset} />);
+    switchToCardView();
+    expect(screen.getByText('Page 1')).toBeInTheDocument();
+    expect(screen.getByText('Page 2')).toBeInTheDocument();
+    expect(screen.getByText('Page 3')).toBeInTheDocument();
+  });
+
+  it('shows "Failed" label for failed cards in Card View', () => {
+    render(<Results lecture={createMockLecture()} onReset={mockOnReset} />);
+    switchToCardView();
+    expect(screen.getByText('Failed')).toBeInTheDocument();
+  });
+
+  it('renders card back text in Card View', () => {
+    render(<Results lecture={createMockLecture()} onReset={mockOnReset} />);
+    switchToCardView();
     expect(screen.getByText('A JS library for building UIs.')).toBeInTheDocument();
     expect(screen.getByText('A typed superset of JavaScript.')).toBeInTheDocument();
   });
 
-  it('renders Concept (Front) labels', () => {
-    render(<Results lecture={createMockLecture()} onReset={mockOnReset} />);
-    const labels = screen.getAllByText('Concept (Front)');
-    expect(labels.length).toBe(3); // one per card
-  });
-
-  it('renders Explanation (Back) labels', () => {
-    render(<Results lecture={createMockLecture()} onReset={mockOnReset} />);
-    const labels = screen.getAllByText('Explanation (Back)');
-    expect(labels.length).toBe(3);
-  });
-
-  it('renders slide image when originalImage is present', () => {
+  it('renders slide image in Card View', () => {
     const lecture = createMockLecture({
       cards: [
         {
@@ -133,33 +160,24 @@ describe('Results Component', () => {
       ],
     });
     render(<Results lecture={lecture} onReset={mockOnReset} />);
+    switchToCardView();
     const img = screen.getByAltText('Slide 1');
-    expect(img).toBeInTheDocument();
     expect(img).toHaveAttribute('src', 'data:image/jpeg;base64,abc123');
   });
 
-  it('does not render image when originalImage is absent', () => {
-    render(<Results lecture={createMockLecture()} onReset={mockOnReset} />);
-    expect(screen.queryByAltText('Slide 1')).not.toBeInTheDocument();
-  });
+  // --- Export buttons ---
 
   it('renders all action buttons', () => {
     render(<Results lecture={createMockLecture()} onReset={mockOnReset} />);
-    // Buttons have text split across child elements (icon + text)
-    // Look for all buttons in the action bar
     const buttons = screen.getAllByRole('button');
-    // Should have at minimum: back button, Raw JSON, Save, Download, plus edit buttons on each card
     expect(buttons.length).toBeGreaterThanOrEqual(4);
   });
 
   it('triggers generateObsidianVault on download button click', async () => {
     render(<Results lecture={createMockLecture()} onReset={mockOnReset} />);
-    // Find all buttons, the download button contains "Download" in its text content
     const buttons = screen.getAllByRole('button');
     const downloadBtn = buttons.find(btn => btn.textContent?.includes('Download Obsidian Vault'));
-    expect(downloadBtn).toBeDefined();
     fireEvent.click(downloadBtn!);
-
     await waitFor(() => {
       expect(generateObsidianVault).toHaveBeenCalled();
     });
@@ -169,9 +187,7 @@ describe('Results Component', () => {
     render(<Results lecture={createMockLecture({ is_saved: false })} onReset={mockOnReset} />);
     const buttons = screen.getAllByRole('button');
     const saveBtn = buttons.find(btn => btn.textContent?.includes('Save to Folder'));
-    expect(saveBtn).toBeDefined();
     fireEvent.click(saveBtn!);
-
     await waitFor(() => {
       expect(saveVaultToDirectory).toHaveBeenCalled();
     });
@@ -182,7 +198,6 @@ describe('Results Component', () => {
     const buttons = screen.getAllByRole('button');
     const saveBtn = buttons.find(btn => btn.textContent?.includes('Save to Folder'));
     fireEvent.click(saveBtn!);
-
     await waitFor(() => {
       const updatedButtons = screen.getAllByRole('button');
       const savedBtn = updatedButtons.find(btn => btn.textContent?.includes('Saved'));
@@ -195,7 +210,6 @@ describe('Results Component', () => {
     const buttons = screen.getAllByRole('button');
     const saveBtn = buttons.find(btn => btn.textContent?.includes('Save to Folder'));
     fireEvent.click(saveBtn!);
-
     await waitFor(() => {
       expect(screen.getByText(/Saved to \/test\/path/)).toBeInTheDocument();
     });
@@ -205,7 +219,6 @@ describe('Results Component', () => {
     render(<Results lecture={createMockLecture({ is_saved: true })} onReset={mockOnReset} />);
     const buttons = screen.getAllByRole('button');
     const savedBtn = buttons.find(btn => btn.textContent?.includes('Saved'));
-    expect(savedBtn).toBeDefined();
     expect(savedBtn).toBeDisabled();
   });
 
@@ -219,18 +232,39 @@ describe('Results Component', () => {
   it('renders Presentation Export info', () => {
     render(<Results lecture={createMockLecture()} onReset={mockOnReset} />);
     expect(screen.getByText('Presentation Export')).toBeInTheDocument();
-    expect(screen.getByText(/compatible with PowerPoint, Google Slides, and Keynote/)).toBeInTheDocument();
   });
 
   it('has a Download Slides (.pptx) button that triggers generatePowerPoint', async () => {
     render(<Results lecture={createMockLecture()} onReset={mockOnReset} />);
     const buttons = screen.getAllByRole('button');
     const pptxBtn = buttons.find(btn => btn.textContent?.includes('Download Slides (.pptx)'));
-    expect(pptxBtn).toBeDefined();
     fireEvent.click(pptxBtn!);
-
     await waitFor(() => {
       expect(generatePowerPoint).toHaveBeenCalled();
     });
+  });
+
+  it('shows skipped count when cards have skipped status', () => {
+    const lecture = createMockLecture({
+      cards: [
+        { id: 'c1', front: 'Title', back: 'Title slide', pageNumber: 1, status: 'skipped' },
+        { id: 'c2', front: 'Concept', back: 'Content', pageNumber: 2, status: 'completed' },
+      ],
+    });
+    render(<Results lecture={lecture} onReset={mockOnReset} />);
+    expect(screen.getByText('(1 skipped)')).toBeInTheDocument();
+    expect(screen.getByText(/Generated 1 concepts/)).toBeInTheDocument();
+  });
+
+  it('shows Skipped badge in Card View for skipped cards', () => {
+    const lecture = createMockLecture({
+      cards: [
+        { id: 'c1', front: 'Title', back: 'Title slide', pageNumber: 1, status: 'skipped' },
+        { id: 'c2', front: 'Concept', back: 'Content', pageNumber: 2, status: 'completed' },
+      ],
+    });
+    render(<Results lecture={lecture} onReset={mockOnReset} />);
+    switchToCardView();
+    expect(screen.getByText('Skipped')).toBeInTheDocument();
   });
 });

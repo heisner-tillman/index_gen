@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Lecture, Flashcard } from '../types';
 import { analyzeSlide, extractPDFInfo, renderPageToImage } from '../services';
-import { Loader2, CheckCircle2, AlertCircle, FileText } from 'lucide-react';
+import { Loader2, CheckCircle2, AlertCircle, FileText, SkipForward } from 'lucide-react';
 
 interface ProcessingProps {
   file: File;
@@ -70,11 +70,12 @@ export const Processing: React.FC<ProcessingProps> = ({ file, limit, onComplete,
 
              // 3. Update result
              if (cardIndex !== -1) {
+                 const wasSkipped = result.skip === true;
                  cardsRef.current[cardIndex] = {
                      ...cardsRef.current[cardIndex],
                      front: result.front,
                      back: result.back,
-                     status: 'completed'
+                     status: wasSkipped ? 'skipped' : 'completed'
                  };
                  setCards([...cardsRef.current]);
              }
@@ -118,7 +119,8 @@ export const Processing: React.FC<ProcessingProps> = ({ file, limit, onComplete,
             totalSlides: pageCount,
             processedSlides: cardsRef.current.filter(c => c.status === 'completed').length,
             cards: cardsRef.current,
-            status: 'completed'
+            status: 'completed',
+            is_saved: false
         };
 
         onComplete(finalLecture);
@@ -154,6 +156,7 @@ export const Processing: React.FC<ProcessingProps> = ({ file, limit, onComplete,
               ${card.status === 'completed' ? 'border-emerald-100 bg-emerald-50 text-emerald-700' : 
                 card.status === 'processing' ? 'border-indigo-200 bg-indigo-50 animate-pulse' : 
                 card.status === 'failed' ? 'border-red-200 bg-red-50 text-red-600' :
+                card.status === 'skipped' ? 'border-amber-200 bg-amber-50 text-amber-600' :
                 'border-slate-100 bg-slate-50 text-slate-400'}`}
           >
             {card.originalImage && (
@@ -163,6 +166,7 @@ export const Processing: React.FC<ProcessingProps> = ({ file, limit, onComplete,
                 {card.status === 'processing' && <Loader2 className="w-4 h-4 animate-spin" />}
                 {card.status === 'completed' && <CheckCircle2 className="w-4 h-4" />}
                 {card.status === 'failed' && <AlertCircle className="w-4 h-4" />}
+                {card.status === 'skipped' && <SkipForward className="w-4 h-4" />}
                 {card.status === 'pending' && <FileText className="w-4 h-4" />}
                 Page {card.pageNumber}
             </span>

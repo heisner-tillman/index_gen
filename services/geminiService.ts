@@ -4,7 +4,7 @@ import { Flashcard } from "../types";
 
 const API_BASE_URL = 'http://localhost:8000';
 
-export const analyzeSlide = async (base64Image: string, pageNumber: number, retryCount = 0): Promise<{ front: string; back: string }> => {
+export const analyzeSlide = async (base64Image: string, pageNumber: number, retryCount = 0): Promise<{ front: string; back: string; skip?: boolean }> => {
   try {
     const response = await fetch(`${API_BASE_URL}/analyze`, {
       method: 'POST',

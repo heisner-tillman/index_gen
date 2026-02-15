@@ -22,16 +22,20 @@ class AIEngine:
         flashcard_schema = {
             "type": "OBJECT",
             "properties": {
+                "skip": {
+                    "type": "BOOLEAN",
+                    "description": "Set to true if this slide is a title page, section divider, table of contents, 'thank you' / 'questions?' slide, or essentially empty with no educational content worth indexing. Set to false for content-rich slides.",
+                },
                 "front": {
                     "type": "STRING",
-                    "description": "A concise conceptual cue, keyword, or question derived directly from the slide's central theme. Keep it brief.",
+                    "description": "A concise conceptual cue, keyword, or question derived directly from the slide's central theme. Keep it brief. If skip is true, set this to the slide's title text or 'Title Slide'.",
                 },
                 "back": {
                     "type": "STRING",
-                    "description": "A highly compressed, bulleted, or narrative explanation answering the front cue. Use markdown for formatting.",
+                    "description": "A highly compressed, bulleted, or narrative explanation answering the front cue. Use markdown for formatting. If skip is true, briefly describe why (e.g. 'Title slide', 'Section divider').",
                 },
             },
-            "required": ["front", "back"],
+            "required": ["skip", "front", "back"],
         }
 
         try:
@@ -51,9 +55,17 @@ class AIEngine:
                             mime_type="image/jpeg"
                         ),
                         types.Part.from_text(
-                            text=f"Analyze this lecture slide (Page {page_number}) and synthesize an educational index card. \n"
-                                 f"The 'front' should be a single clear concept or question. \n"
-                                 f"The 'back' should be a comprehensive but concise explanation.\n"
+                            text=f"Analyze this lecture slide (Page {page_number}).\n\n"
+                                 f"First, determine if this slide has real educational content.\n"
+                                 f"Set 'skip' to true if the slide is any of these:\n"
+                                 f"- A title page or cover slide\n"
+                                 f"- A section divider or chapter heading\n"
+                                 f"- A table of contents or outline slide\n"
+                                 f"- A 'thank you', 'questions?', or closing slide\n"
+                                 f"- An essentially empty or decorative slide\n\n"
+                                 f"If 'skip' is false, synthesize an educational index card:\n"
+                                 f"- 'front': a single clear concept or question\n"
+                                 f"- 'back': a comprehensive but concise explanation\n"
                                  f"Ignore navigational elements or footers."
                         )
                     ],
