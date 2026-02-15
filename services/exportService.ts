@@ -55,76 +55,84 @@ export const generatePowerPoint = async (lecture: Lecture): Promise<void> => {
   const completedCards = lecture.cards.filter(c => c.status === 'completed');
 
   for (const card of completedCards) {
-    const slide = pptx.addSlide();
-    slide.background = { color: 'FFFFFF' };
-
+    // ── Slide 1: Original slide image (full page) ──
     if (card.originalImage) {
-      // Image on left half of the slide
-      slide.addImage({
+      const imgSlide = pptx.addSlide();
+      imgSlide.background = { color: 'F8F9FA' };
+
+      // Full-width image centered on the slide
+      imgSlide.addImage({
         data: card.originalImage,
-        x: 0.3,
-        y: 0.8,
-        w: 4.5,
-        h: 3.5,
+        x: 0.5,
+        y: 0.3,
+        w: 9.0,
+        h: 5.0,
         rounding: true,
       });
 
-      // Title on the right side
-      slide.addText(card.front, {
-        x: 5.1,
-        y: 0.3,
-        w: 4.5,
-        h: 0.8,
-        fontSize: 20,
-        bold: true,
-        color: '1a1a2e',
+      // Small page label at bottom
+      imgSlide.addText(`Page ${card.pageNumber}`, {
+        x: 0.3,
+        y: 4.8,
+        w: 3.0,
+        h: 0.3,
+        fontSize: 9,
+        color: '999999',
         fontFace: 'Arial',
-        valign: 'top',
-        wrap: true,
-      });
-
-      // Body on the right side below title
-      slide.addText(card.back, {
-        x: 5.1,
-        y: 1.2,
-        w: 4.5,
-        h: 3.1,
-        fontSize: 13,
-        color: '3d3d5c',
-        fontFace: 'Arial',
-        valign: 'top',
-        wrap: true,
-      });
-    } else {
-      // No image: full-width layout
-      slide.addText(card.front, {
-        x: 0.5,
-        y: 0.4,
-        w: 9.0,
-        h: 0.9,
-        fontSize: 24,
-        bold: true,
-        color: '1a1a2e',
-        fontFace: 'Arial',
-        valign: 'top',
-        wrap: true,
-      });
-
-      slide.addText(card.back, {
-        x: 0.5,
-        y: 1.5,
-        w: 9.0,
-        h: 3.0,
-        fontSize: 14,
-        color: '3d3d5c',
-        fontFace: 'Arial',
-        valign: 'top',
-        wrap: true,
       });
     }
 
+    // ── Slide 2: Question & Answer ──
+    const qaSlide = pptx.addSlide();
+    qaSlide.background = { color: 'FFFFFF' };
+
+    // Accent bar at top
+    qaSlide.addText('', {
+      x: 0.0,
+      y: 0.0,
+      w: 10.0,
+      h: 0.06,
+      fill: { color: '4F46E5' },
+    });
+
+    // Question / Concept (front)
+    qaSlide.addText(card.front, {
+      x: 0.5,
+      y: 0.4,
+      w: 9.0,
+      h: 1.0,
+      fontSize: 24,
+      bold: true,
+      color: '1a1a2e',
+      fontFace: 'Arial',
+      valign: 'top',
+      wrap: true,
+    });
+
+    // Divider line
+    qaSlide.addText('', {
+      x: 0.5,
+      y: 1.5,
+      w: 2.0,
+      h: 0.04,
+      fill: { color: '4F46E5' },
+    });
+
+    // Answer / Explanation (back)
+    qaSlide.addText(card.back, {
+      x: 0.5,
+      y: 1.8,
+      w: 9.0,
+      h: 3.0,
+      fontSize: 14,
+      color: '3d3d5c',
+      fontFace: 'Arial',
+      valign: 'top',
+      wrap: true,
+    });
+
     // Footer with page reference
-    slide.addText(`Source: Page ${card.pageNumber}`, {
+    qaSlide.addText(`Source: Page ${card.pageNumber}`, {
       x: 0.3,
       y: 4.8,
       w: 3.0,

@@ -240,8 +240,8 @@ describe('exportService', () => {
     mockSlide.addImage.mockClear();
 
     await generatePowerPoint(mockLecture);
-    // 2 completed cards × 3 text calls each (title + body + footer) = 6
-    expect(mockSlide.addText).toHaveBeenCalledTimes(6);
+    // 2 completed cards × 5 text calls each (accent bar + front + divider + back + footer) = 10
+    expect(mockSlide.addText).toHaveBeenCalledTimes(10);
   });
 
   it('does not add images when cards have no originalImage', async () => {

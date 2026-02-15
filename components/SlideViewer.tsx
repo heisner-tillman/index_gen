@@ -97,15 +97,15 @@ export const SlideViewer: React.FC<SlideViewerProps> = ({ cards, lectureName }) 
         <div className={`w-full flex flex-col md:flex-row items-stretch ${isExpanded ? 'flex-1 min-h-0' : ''}`}>
           {/* Image pane */}
           {currentCard.originalImage ? (
-            <div className={`md:w-1/2 bg-slate-50 flex items-center justify-center p-4 border-r border-slate-100 ${isExpanded ? 'min-h-0' : 'min-h-[280px]'}`}>
+            <div className={`md:w-3/5 bg-slate-50 flex items-center justify-center p-4 border-r border-slate-100 ${isExpanded ? 'min-h-0' : 'min-h-[400px]'}`}>
               <img
                 src={currentCard.originalImage}
                 alt={`Slide ${currentCard.pageNumber}`}
-                className={`max-w-full object-contain rounded-lg shadow-sm ${isExpanded ? 'max-h-full' : 'max-h-[320px]'}`}
+                className={`max-w-full object-contain rounded-lg shadow-sm ${isExpanded ? 'max-h-full' : 'max-h-[480px]'}`}
               />
             </div>
           ) : (
-            <div className={`md:w-1/2 bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4 border-r border-slate-100 ${isExpanded ? 'min-h-0' : 'min-h-[280px]'}`}>
+            <div className={`md:w-3/5 bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4 border-r border-slate-100 ${isExpanded ? 'min-h-0' : 'min-h-[400px]'}`}>
               <div className="text-center">
                 <Image className="w-16 h-16 text-slate-200 mx-auto mb-2" />
                 <p className="text-xs text-slate-400">No image available</p>
@@ -114,7 +114,7 @@ export const SlideViewer: React.FC<SlideViewerProps> = ({ cards, lectureName }) 
           )}
 
           {/* Text pane */}
-          <div className={`md:w-1/2 p-6 flex flex-col justify-center gap-5 ${isExpanded ? 'overflow-y-auto' : ''}`}>
+          <div className={`md:w-2/5 p-6 flex flex-col justify-center gap-5 ${isExpanded ? 'overflow-y-auto' : ''}`}>
             {/* Page badge */}
             <div className="flex items-center gap-2">
               <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-50 text-indigo-700 border border-indigo-100">

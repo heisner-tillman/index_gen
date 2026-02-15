@@ -19,8 +19,8 @@ export const loadPDF = async (file: File): Promise<pdfjsLib.PDFDocumentProxy> =>
 export const renderPageToImage = async (pdf: pdfjsLib.PDFDocumentProxy, pageNumber: number): Promise<string> => {
   const page = await pdf.getPage(pageNumber);
   
-  // High scale for better OCR/Vision results
-  const scale = 2.0; 
+  // High scale for better OCR/Vision results and sharp slide display
+  const scale = 3.0; 
   const viewport = page.getViewport({ scale });
 
   const canvas = document.createElement('canvas');
@@ -39,7 +39,7 @@ export const renderPageToImage = async (pdf: pdfjsLib.PDFDocumentProxy, pageNumb
   }).promise;
 
   // Return base64 string (remove prefix for API usage usually, but keep standard data uri for internal use)
-  return canvas.toDataURL('image/jpeg', 0.85); 
+  return canvas.toDataURL('image/jpeg', 0.92); 
 };
 
 export const extractPDFInfo = async (file: File) => {
